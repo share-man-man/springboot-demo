@@ -1,6 +1,6 @@
 package com.xiaoman.springboot.config;
 
-import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -14,18 +14,39 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 @Configuration
 public class RedisConfig {
+
+    @Autowired
+    RedisConnectionFactory redisConnectionFactory;
+
     @Bean
-    public RedisTemplate<Object, Object> getRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<Object, Object> template = new RedisTemplate<>();
-        //使用fast json序列化
-        FastJsonRedisSerializer fastJsonRedisSerializer = new FastJsonRedisSerializer(Object.class);
-        // value值的序列化采用fastJsonRedisSerializer
-        template.setValueSerializer(fastJsonRedisSerializer);
-        template.setHashValueSerializer(fastJsonRedisSerializer);
-        // key的序列化采用StringRedisSerializer
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setConnectionFactory(redisConnectionFactory);
-        return template;
+    public RedisTemplate<String, Object> redisTemplate() {
+        RedisTemplate redisTemplate = new RedisTemplate();
+
+//        使用fastjson序列化，能直接存取对象
+//        FastJsonRedisSerializerOverride<Object> fastJsonRedisSerializer = new FastJsonRedisSerializerOverride<>(Object.class);
+//        // 全局开启AutoType，不建议使用
+//        // ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
+//        // 建议使用这种方式，小范围指定白名单
+//        ParserConfig.getGlobalInstance().addAccept("com.longge.");
+//
+//        // 设置值（value）的序列化采用FastJsonRedisSerializer。
+//        redisTemplate.setValueSerializer(fastJsonRedisSerializer);
+//        redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
+//        // 设置键（key）的序列化采用StringRedisSerializer。
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+
+//        使用String序列化，方便操作
+        //key采用String序列化方式
+        StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
+        redisTemplate.setKeySerializer(stringRedisSerializer);
+        redisTemplate.setHashKeySerializer(stringRedisSerializer);
+        //value采用String序列化方式。
+        redisTemplate.setValueSerializer(stringRedisSerializer);
+        redisTemplate.setHashValueSerializer(stringRedisSerializer);
+
+
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        return redisTemplate;
     }
 }

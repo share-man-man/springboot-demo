@@ -1,5 +1,7 @@
 package com.xiaoman.springboot.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.xiaoman.springboot.bean.HelloBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +26,11 @@ public class RedisController {
      * @time: 2020/5/6 5:00 下午
      */
     @GetMapping("/setRedisKey")
-    public String redis(@RequestParam(value = "key") String key, @RequestParam String value) {
-        redisTemplate.opsForValue().set(key, value);
-        return "";
+    public HelloBean redis(@RequestParam(value = "key") String key, @RequestParam(value = "id") String id) {
+        HelloBean helloBean = new HelloBean(id, id, 3);
+        redisTemplate.opsForValue().set(key, JSON.toJSONString(helloBean));
+        HelloBean h0 = JSON.parseObject((String) redisTemplate.opsForValue().get(key), HelloBean.class);
+        return h0;
     }
 
     /**
