@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>hello</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p th:text="${info}" >name</p>
+<h1>Upload</h1>
+<form method="POST" action="/mvc/upload" enctype="multipart/form-data">
+    <input type="file" name="file" /><br/><br/>
+    <input type="submit" value="Submit" />
+</form>
+<h1>Download</h1>
+<button onclick="download()">download</button>
+</body>
+
+<script>
+    function download() {
+        // console.log(11)
+        window.open('/mvc/download','下载')
+    }
+</script>
+</html>
