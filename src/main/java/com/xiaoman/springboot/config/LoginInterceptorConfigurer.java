@@ -37,7 +37,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
                 /*放行首页、和登录页面*/
                 /*.excludePathPatterns("/","/index.html","/login.html","/index","/login")*/
                 /*放行mvc请求*/
-                .excludePathPatterns("/mvc","/mvc/**")
+                .excludePathPatterns("/mvc","/mvc/**","/hello/**")
                 /*放行登录请求*/
                 /*.excludePathPatterns("/user/login")*/
                 /*放行非登录页面*/

@@ -2,14 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>hello</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
 <body>
-<p th:text="${info}" >name</p>
+<p th:text="${info}">name</p>
+<input id="inputStr" type="text" style="height: 300px;width: 600px"/>
+<button onclick="submitInput()">发送</button>
 <h1>Upload</h1>
 <form method="POST" action="/mvc/upload" enctype="multipart/form-data">
-    <input type="file" name="file" /><br/><br/>
-    <input type="submit" value="Submit" />
+    <input type="file" name="file"/><br/><br/>
+    <input type="submit" value="Submit"/>
 </form>
 <h1>Download</h1>
 <button onclick="download()">download</button>
@@ -18,7 +20,48 @@
 <script>
     function download() {
         // console.log(11)
-        window.open('/mvc/download','下载')
+        window.open('/mvc/download', '下载')
+    }
+
+    function submitInput() {
+        let val = document.getElementById("inputStr").value
+        fnRequest({
+            url: '/mvc/inputStr',
+            method: 'POST',
+            // param: `str=${JSON.stringify(val)}`
+            param: {str: val}
+        }, function (response) {
+            // console.log(response)
+        })
+
+    }
+
+    function fnRequest({
+                           url: url = '',
+                           method: method = 'GET',
+                           param: param
+                       }, cFunc) {
+        console.log(param)
+        if (window.XMLHttpRequest) {// IE7+, Firefox, Chrome, Opera, Safari 代码
+            xmlhttp = new XMLHttpRequest();
+        } else {// IE6, IE5 代码
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = cFunc;
+        xmlhttp.open(method, url, true);
+        const type = {
+            GET: function () {
+                xmlhttp.open("GET", `${url}?_$random= ${Math.random()}&${param}`, true);
+                xmlhttp.send();
+            },
+            POST: function () {
+                xmlhttp.open("POST", url, true);
+                xmlhttp.setRequestHeader("Content-type", "application/json");
+                xmlhttp.send(JSON.stringify(param));
+            }
+        }
+        type[method]()
+        console.log(xmlhttp.responseText)
     }
 </script>
 </html>

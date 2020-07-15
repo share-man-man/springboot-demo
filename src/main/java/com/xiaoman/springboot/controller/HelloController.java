@@ -19,6 +19,7 @@ public class HelloController {
      */
     @GetMapping("/say")
     public String say(@RequestParam(value = "name", defaultValue = "World") String name) {
+        System.out.println(name);
         return String.format("Hello: %s!", name);
     }
 

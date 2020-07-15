@@ -1,15 +1,14 @@
 package com.xiaoman.springboot.controller;
 
 import com.xiaoman.springboot.bean.LoginBean;
+import com.xiaoman.springboot.bean.MvcBean;
+import com.xiaoman.springboot.code.RedisCode;
 import com.xiaoman.springboot.config.GrainFullProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -43,9 +42,20 @@ public class MvcController {
      */
     @RequestMapping("")
     public String index(Model model) {
-        System.out.println();
         model.addAttribute("info", "thymeleafdemo!!!");
         return "index";
+    }
+
+    /**
+     * @description: 提交数据
+     * @author: shuxiaoman
+     * @time: 2020/7/10 9:28 上午
+     */
+    @RequestMapping("/inputStr")
+    @ResponseBody
+    public String inputStr(@RequestBody MvcBean bean) {
+        System.out.println(bean.getStr());
+        return "成功";
     }
 
     /**
