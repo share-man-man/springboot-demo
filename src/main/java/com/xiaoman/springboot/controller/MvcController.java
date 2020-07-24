@@ -47,6 +47,16 @@ public class MvcController {
     }
 
     /**
+     * @description: websocket界面
+     * @author: shuxiaoman
+     * @time: 2020/7/22 3:52 下午
+     */
+    @RequestMapping("/websocket")
+    public String websocket() {
+        return "websocket-vue";
+    }
+
+    /**
      * @description: 提交数据
      * @author: shuxiaoman
      * @time: 2020/7/10 9:28 上午

@@ -1,0 +1,184 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>小满的websocket</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/stomp.js/2.3.3/stomp.js"></script>
+    <style>
+        .content {
+            width: 100vw;
+            display: flex;
+        }
+
+        .son {
+            text-align: center;
+            height: 100%;
+            width: 30%;
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="app" class="app">
+    <div>
+        <button onclick="maxConnect(1)">新建连接</button>
+        <button :disabled="connect.connecting" onclick="fnConnect()">连接</button>
+        <button :disabled="!connect.connecting" onclick="fnDisConnect()">断开</button>
+        <br>
+        {{ connect.connecting ? `已连接：${authToken}` : '断开了' }}
+    </div>
+    <div>
+        <input v-model="message"/>
+        <button :disabled="!connect.connecting" onclick="sendMessage()">发送广播消息</button>
+        <button :disabled="!connect.connecting" onclick="askQuestion()">发送问题</button>
+    </div>
+    <div class="content">
+        <div class="son" style="background-color: #f2f2f2">
+            <h3>广播消息</h3>
+            <ul>
+                <li
+                        v-for="(item,index) in newsList"
+                        :key="index"
+                >
+                    {{item}}
+                </li>
+            </ul>
+        </div>
+        <div class="son" style="background-color: #d6d6d6">
+            <h3>问题</h3>
+            <ul>
+                <li
+                        v-for="(item,index) in greetingsList"
+                        :key="index"
+                >
+                    {{item}}
+                </li>
+            </ul>
+        </div>
+        <div class="son" style="background-color: #acacac">
+            <h3>当前连接用户</h3>
+            <ul>
+                <li
+                        v-for="(item,index) in userList"
+                        :key="index"
+                >
+                    {{item}}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+</body>
+<script>
+    class ConnectObj {
+        constructor() {
+            this.connecting = false
+            this.init = false
+            this.connectNum = 0
+        }
+    }
+
+    const conObj = new ConnectObj()
+
+    let stompClient = null;
+    // let authToken = null;
+    let app = new Vue({
+        el: '#app',
+        data: {
+            connect: {
+                ...conObj
+            },
+            message: '',
+            newsList: [],
+            greetingsList: [],
+            userList: [],
+            authToken: '',
+            // connectRequestNum: 0,
+            // subscriptInitFlag: {
+            //     connect: false,
+            // }
+        }
+    })
+
+    function fnConnect() {
+        let socket = new SockJS('/grain-full-websocket');
+        // 跨域连接，需要后端设置origin
+        // let socket = new SockJS('http://localhost:9528/grain-full-websocket');
+        stompClient = Stomp.over(socket);
+        app.authToken = new Date().getTime()
+        stompClient.connect({"Auth-Token": app.authToken}, function (frame) {
+            app.connect.connecting = true;
+            // console.log('Connected: ' + frame);
+            // 订阅连接事件
+            stompClient.subscribe('/topic/connect', function ({body}) {
+                app.connect.init = true
+                app.userList.splice(0, app.userList.length, ...JSON.parse(body))
+            });
+            // 订阅断开事件
+            stompClient.subscribe('/topic/disConnect', function ({body}) {
+                const deleteIndex = app.userList.findIndex(item => item === body)
+                if (deleteIndex > -1) {
+                    app.userList.splice(deleteIndex, 1)
+                }
+                // app.userList.splice(0, app.userList.length, ...JSON.parse(body))
+            });
+            // 订阅广播消息
+            stompClient.subscribe('/topic/news', function ({body}) {
+                // showGreeting(JSON.parse(greeting.body).content);
+                app.newsList.push(JSON.parse(body).content)
+            });
+            // 订阅单个获取消息
+            stompClient.subscribe('/user/queue/answer', function ({body}) {
+                app.greetingsList.push(body)
+            });
+            // 订阅精准消息推送
+            stompClient.subscribe('/user/queue/answer', function ({body}) {
+                app.greetingsList.push(body)
+            });
+
+            // 如果用户没初始化，就重复请求用户信息
+            let interValId = setInterval(function () {
+                if (!app.connect.connecting) {
+                    clearInterval(interValId)
+                }
+                if (app.connect.init) {
+                    clearInterval(interValId)
+                } else {
+                    if (app.connect.connectNum >= 5) {
+                        console.log(`第${app.connect.connectNum}次获取'当前连接用户'失败`)
+                        clearInterval(interValId)
+                    } else {
+                        app.connect.connectNum++
+                        console.log(`第${app.connect.connectNum}次获取'当前连接用户'`)
+                        connecting()
+                    }
+                }
+            }, 5000)
+
+        });
+    }
+
+    function fnDisConnect() {
+        stompClient.disconnect(function () {
+            app.connect = {...new ConnectObj()}
+            app.userList.splice(0)
+        });
+    }
+
+    function sendMessage() {
+        stompClient.send("/app/news", {}, JSON.stringify({'name': app.message, 'token': app.authToken}));
+    }
+
+    function askQuestion() {
+        stompClient.send("/app/question", {}, JSON.stringify({'name': app.message, 'token': app.authToken}));
+    }
+
+    function connecting() {
+        stompClient.send("/app/connecting", {}, JSON.stringify({'token': app.authToken}))
+    }
+</script>
+</html>

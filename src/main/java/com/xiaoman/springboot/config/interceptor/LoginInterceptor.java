@@ -1,4 +1,4 @@
-package com.xiaoman.springboot.config;
+package com.xiaoman.springboot.config.interceptor;
 
 import com.xiaoman.springboot.code.RedisCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,15 +45,15 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         if (null == tokenCookie) {
-            returnJson(response, "2");
+            returnJson(request,response, "2");
             return false;
         } else {
             if (null == tokenCookie.getValue() || "".equals(tokenCookie.getValue())) {
-                returnJson(response, "2");
+                returnJson(request,response, "2");
                 return false;
             } else {
                 if (!redisTemplate.opsForSet().isMember(RedisCode.tokenMap.toString(), tokenCookie.getValue())) {
-                    returnJson(response, "3");
+                    returnJson(request,response, "3");
                     return false;
                 } else {
                     return true;
@@ -78,7 +78,8 @@ public class LoginInterceptor implements HandlerInterceptor {
      * @author: shuxiaoman
      * @time: 2019/5/26
      */
-    private static void returnJson(HttpServletResponse response, String code) throws Exception {
+    private static void returnJson(HttpServletRequest request,HttpServletResponse response, String code) throws Exception {
+        System.out.println("登陆拦截："+request.getRequestURI().toString());
         response.addHeader("Grain-Full-Code", code);
         // getOutputStream输出字节，getWriter输出字符
         /*response.getOutputStream().print("you need to login");*/

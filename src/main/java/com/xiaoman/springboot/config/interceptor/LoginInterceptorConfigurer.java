@@ -1,9 +1,8 @@
-package com.xiaoman.springboot.config;
+package com.xiaoman.springboot.config.interceptor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -21,7 +20,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
      * @Date 2019/5/23
      **/
     @Bean
-    public LoginInterceptor loginInterceptor(){
+    public LoginInterceptor loginInterceptor() {
         return new LoginInterceptor();
     }
 
@@ -37,13 +36,13 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
                 /*放行首页、和登录页面*/
                 /*.excludePathPatterns("/","/index.html","/login.html","/index","/login")*/
                 /*放行mvc请求*/
-                .excludePathPatterns("/mvc","/mvc/**","/hello/**")
+                .excludePathPatterns("/mvc", "/mvc/**", "/hello/**")
                 /*放行登录请求*/
                 /*.excludePathPatterns("/user/login")*/
                 /*放行非登录页面*/
                 /*.excludePathPatterns("/static_pages/pass/**")*/
                 /*放行静态资源*/
-                .excludePathPatterns("/css/**","/img/**","/js/**")
+                .excludePathPatterns("/css/**", "/img/**", "/js/**")
         ;/*放行静态资源*/
     }
 
