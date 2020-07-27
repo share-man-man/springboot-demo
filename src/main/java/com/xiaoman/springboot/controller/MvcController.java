@@ -3,7 +3,7 @@ package com.xiaoman.springboot.controller;
 import com.xiaoman.springboot.bean.LoginBean;
 import com.xiaoman.springboot.bean.MvcBean;
 import com.xiaoman.springboot.code.RedisCode;
-import com.xiaoman.springboot.config.GrainFullProperties;
+import com.xiaoman.springboot.config.properties.GrainFullProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -47,16 +47,6 @@ public class MvcController {
     }
 
     /**
-     * @description: websocket界面
-     * @author: shuxiaoman
-     * @time: 2020/7/22 3:52 下午
-     */
-    @RequestMapping("/websocket")
-    public String websocket() {
-        return "websocket-vue";
-    }
-
-    /**
      * @description: 提交数据
      * @author: shuxiaoman
      * @time: 2020/7/10 9:28 上午
@@ -90,7 +80,7 @@ public class MvcController {
         LoginBean loginBean = new LoginBean();
         loginBean.setToken(token);
         loginBean.setExpires(grainFullProperties.getExpires());
-        redisTemplate.opsForSet().add("tokenMap", token);
+        redisTemplate.opsForSet().add(RedisCode.tokenMap.toString(), token);
         return loginBean;
     }
 

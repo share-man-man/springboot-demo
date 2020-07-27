@@ -1,4 +1,4 @@
-package com.xiaoman.springboot.config.interceptor;
+package com.xiaoman.springboot.config.login;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,7 @@ public class LoginInterceptorConfigurer implements WebMvcConfigurer {
                 /*放行首页、和登录页面*/
                 /*.excludePathPatterns("/","/index.html","/login.html","/index","/login")*/
                 /*放行mvc请求*/
-                .excludePathPatterns("/mvc", "/mvc/**", "/hello/**")
+                .excludePathPatterns("/mvc", "/mvc/**", "/hello/**","/websocket/**")
                 /*放行登录请求*/
                 /*.excludePathPatterns("/user/login")*/
                 /*放行非登录页面*/

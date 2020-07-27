@@ -15,7 +15,7 @@
         .son {
             text-align: center;
             height: 100%;
-            width: 30%;
+            width: 24%;
         }
     </style>
 
@@ -24,7 +24,6 @@
 
 <div id="app" class="app">
     <div>
-        <button onclick="maxConnect(1)">新建连接</button>
         <button :disabled="connect.connecting" onclick="fnConnect()">连接</button>
         <button :disabled="!connect.connecting" onclick="fnDisConnect()">断开</button>
         <br>
@@ -32,8 +31,9 @@
     </div>
     <div>
         <input v-model="message"/>
-        <button :disabled="!connect.connecting" onclick="sendMessage()">发送广播消息</button>
+        <button :disabled="!connect.connecting" onclick="sendNews()">发送广播消息</button>
         <button :disabled="!connect.connecting" onclick="askQuestion()">发送问题</button>
+        <button :disabled="!connect.connecting" onclick="sendToUsers()">发送给勾选的人</button>
     </div>
     <div class="content">
         <div class="son" style="background-color: #f2f2f2">
@@ -41,6 +41,17 @@
             <ul>
                 <li
                         v-for="(item,index) in newsList"
+                        :key="index"
+                >
+                    {{item}}
+                </li>
+            </ul>
+        </div>
+        <div class="son" style="background-color: #dedede">
+            <h3>消息</h3>
+            <ul>
+                <li
+                        v-for="(item,index) in messageList"
                         :key="index"
                 >
                     {{item}}
@@ -60,14 +71,17 @@
         </div>
         <div class="son" style="background-color: #acacac">
             <h3>当前连接用户</h3>
-            <ul>
-                <li
-                        v-for="(item,index) in userList"
-                        :key="index"
-                >
-                    {{item}}
-                </li>
-            </ul>
+            <div
+                    v-for="item in checkUserList"
+                    :key="item.token"
+            >
+                <input
+                        type="checkbox"
+                        v-model="item.value"
+                        :disabled="item.disabled"
+                />
+                {{item.token}}{{ item.token === authToken ? '(你自己)' : ''}}
+            </div>
         </div>
     </div>
 </div>
@@ -89,18 +103,15 @@
     let app = new Vue({
         el: '#app',
         data: {
+            authToken: '',
             connect: {
                 ...conObj
             },
             message: '',
             newsList: [],
             greetingsList: [],
-            userList: [],
-            authToken: '',
-            // connectRequestNum: 0,
-            // subscriptInitFlag: {
-            //     connect: false,
-            // }
+            checkUserList: [],
+            messageList: []
         }
     })
 
@@ -109,22 +120,28 @@
         // 跨域连接，需要后端设置origin
         // let socket = new SockJS('http://localhost:9528/grain-full-websocket');
         stompClient = Stomp.over(socket);
-        app.authToken = new Date().getTime()
+        app.authToken = new Date().getTime().toString()
         stompClient.connect({"Auth-Token": app.authToken}, function (frame) {
             app.connect.connecting = true;
             // console.log('Connected: ' + frame);
             // 订阅连接事件
             stompClient.subscribe('/topic/connect', function ({body}) {
                 app.connect.init = true
-                app.userList.splice(0, app.userList.length, ...JSON.parse(body))
+                const list = [...JSON.parse(body)]
+                app.checkUserList = list.map(item => {
+                    return {
+                        token: item,
+                        value: false,
+                        disabled: app.authToken === item
+                    }
+                })
             });
             // 订阅断开事件
             stompClient.subscribe('/topic/disConnect', function ({body}) {
-                const deleteIndex = app.userList.findIndex(item => item === body)
+                const deleteIndex = app.checkUserList.findIndex(item => item.token === body)
                 if (deleteIndex > -1) {
-                    app.userList.splice(deleteIndex, 1)
+                    app.checkUserList.splice(deleteIndex, 1)
                 }
-                // app.userList.splice(0, app.userList.length, ...JSON.parse(body))
             });
             // 订阅广播消息
             stompClient.subscribe('/topic/news', function ({body}) {
@@ -136,8 +153,9 @@
                 app.greetingsList.push(body)
             });
             // 订阅精准消息推送
-            stompClient.subscribe('/user/queue/answer', function ({body}) {
-                app.greetingsList.push(body)
+            stompClient.subscribe('/user/queue/message', function ({body}) {
+                const mes = JSON.parse(body)
+                app.messageList.push(`${mes.token}：${mes.name}`)
             });
 
             // 如果用户没初始化，就重复请求用户信息
@@ -158,18 +176,21 @@
                     }
                 }
             }, 5000)
+        })
+    }
 
-        });
+    function connecting() {
+        stompClient.send("/app/connecting", {}, JSON.stringify({'token': app.authToken}))
     }
 
     function fnDisConnect() {
         stompClient.disconnect(function () {
             app.connect = {...new ConnectObj()}
-            app.userList.splice(0)
+            app.checkUserList.splice(0)
         });
     }
 
-    function sendMessage() {
+    function sendNews() {
         stompClient.send("/app/news", {}, JSON.stringify({'name': app.message, 'token': app.authToken}));
     }
 
@@ -177,8 +198,19 @@
         stompClient.send("/app/question", {}, JSON.stringify({'name': app.message, 'token': app.authToken}));
     }
 
-    function connecting() {
-        stompClient.send("/app/connecting", {}, JSON.stringify({'token': app.authToken}))
+    function sendToUsers() {
+        const tokens = app.checkUserList.filter(item => {
+            return item.value
+        }).map(item => item.token)
+        stompClient.send("/app/sendToUsers", {}, JSON.stringify({
+            'name': app.message,
+            'token': app.authToken,
+            'userTokens': tokens
+        }));
     }
+
+    setTimeout(() => {
+        fnConnect()
+    }, 1000)
 </script>
 </html>

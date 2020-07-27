@@ -1,15 +1,11 @@
 package com.xiaoman.springboot.bean;
 
+import java.util.ArrayList;
+
 public class WebSocketMessage {
     private String name;
     private String token;
-
-//    public WebSocketMessage() {
-//    }
-//
-//    public WebSocketMessage(String name) {
-//        this.name = name;
-//    }
+    private ArrayList<String> userTokens;
 
     public String getName() {
         return name;
@@ -25,5 +21,13 @@ public class WebSocketMessage {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public ArrayList<String> getUserTokens() {
+        return userTokens;
+    }
+
+    public void setUserTokens(ArrayList<String> userTokens) {
+        this.userTokens = userTokens;
     }
 }

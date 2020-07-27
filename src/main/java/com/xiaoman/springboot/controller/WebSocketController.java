@@ -2,6 +2,7 @@ package com.xiaoman.springboot.controller;
 
 import com.xiaoman.springboot.bean.Greeting;
 import com.xiaoman.springboot.bean.WebSocketMessage;
+import com.xiaoman.springboot.code.RedisCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -9,6 +10,8 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.util.HtmlUtils;
 
 /**
@@ -24,6 +27,16 @@ public class WebSocketController {
     RedisTemplate redisTemplate;
 
     /**
+     * @description: websocket界面
+     * @author: shuxiaoman
+     * @time: 2020/7/22 3:52 下午
+     */
+    @RequestMapping("/websocket")
+    public String websocket() {
+        return "websocket-vue";
+    }
+
+    /**
      * @description: 返回当前所有连接人的token
      * @author: shuxiaoman
      * @time: 2020/7/24 5:08 下午
@@ -32,15 +45,8 @@ public class WebSocketController {
     @SendTo("/topic/connect")
     public Object[] connect(WebSocketMessage message) throws InterruptedException {
         Thread.sleep(1000);
-        return redisTemplate.opsForSet().members("authToken").toArray();
+        return redisTemplate.opsForSet().members(RedisCode.websocketToken.toString()).toArray();
     }
-
-//    @MessageMapping("/disConnecting")
-//    @SendTo("/topic/disConnect")
-//    public String disConnect(WebSocketMessage message) throws InterruptedException {
-//        Thread.sleep(1000);
-//        return "指定发送给某人：" + message.getName();
-//    }
 
     /**
      * @description: 广播消息
@@ -68,10 +74,30 @@ public class WebSocketController {
         String answer = question
                 .replaceAll("吗", "")
                 .replaceAll("你", "我")
-                .replaceAll("爸爸","儿子")
-                .replaceAll("傻逼","沙雕")
+                .replaceAll("爸爸", "儿子")
+                .replaceAll("傻逼", "沙雕")
                 .replaceAll("[?]", "!")
                 .replaceAll("？", "!");
         return "回答：" + HtmlUtils.htmlEscape(answer);
+    }
+
+    /**
+     * @description: 消息精准推送
+     * @author: shuxiaoman
+     * @time: 2020/7/27 10:38 上午
+     */
+    @MessageMapping("/sendToUsers")
+    public void sendToUsers(WebSocketMessage message) throws InterruptedException {
+        Thread.sleep(1000);
+        System.out.println(message.getToken() + "发送给:" + message.getUserTokens().toString());
+        if (ObjectUtils.isEmpty(message.getName())) {
+            return;
+        }
+        WebSocketMessage returnMessage = new WebSocketMessage();
+        returnMessage.setName(message.getName());
+        returnMessage.setToken(message.getToken());
+        for (String token : message.getUserTokens()) {
+            simpMessagingTemplate.convertAndSendToUser(token, "/queue/message", returnMessage);
+        }
     }
 }

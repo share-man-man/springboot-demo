@@ -1,4 +1,4 @@
-package com.xiaoman.springboot.config;
+package com.xiaoman.springboot.config.redis;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;

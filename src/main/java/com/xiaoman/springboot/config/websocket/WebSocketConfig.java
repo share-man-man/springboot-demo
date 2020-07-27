@@ -1,5 +1,6 @@
 package com.xiaoman.springboot.config.websocket;
 
+import com.xiaoman.springboot.code.RedisCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,6 +22,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @description: websocket配置
@@ -74,11 +76,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor =
                         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-
                 StompCommand command = accessor.getCommand();
                 if (StompCommand.CONNECT.equals(command)) {
                     String authToken = accessor.getFirstNativeHeader("Auth-Token");
-                    redisTemplate.opsForSet().add("authToken", authToken);
+                    redisTemplate.opsForSet().add(RedisCode.websocketToken.toString(), authToken);
                     Principal user = new Principal() {
                         @Override
                         public String getName() {
@@ -88,7 +89,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     accessor.setUser(user);
                 }
                 if (StompCommand.DISCONNECT.equals(command)) {
-                    redisTemplate.opsForSet().remove("authToken", accessor.getUser().getName());
+                    redisTemplate.opsForSet().remove(RedisCode.websocketToken.toString(), accessor.getUser().getName());
                     // 有人退出，重新发送当前
                     simpMessagingTemplate.convertAndSend("/topic/disConnect", accessor.getUser().getName());
                 }

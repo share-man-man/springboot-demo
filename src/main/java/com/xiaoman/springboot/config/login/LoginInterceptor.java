@@ -1,4 +1,4 @@
-package com.xiaoman.springboot.config.interceptor;
+package com.xiaoman.springboot.config.login;
 
 import com.xiaoman.springboot.code.RedisCode;
 import org.springframework.beans.factory.annotation.Autowired;

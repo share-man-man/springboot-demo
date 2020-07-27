@@ -1,4 +1,4 @@
-package com.xiaoman.springboot.config;
+package com.xiaoman.springboot.config.redis;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

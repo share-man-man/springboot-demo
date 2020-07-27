@@ -1,4 +1,4 @@
-package com.xiaoman.springboot.config;
+package com.xiaoman.springboot.config.properties;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
