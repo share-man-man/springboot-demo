@@ -25,13 +25,22 @@
 
     function submitInput() {
         let val = document.getElementById("inputStr").value
-        fnRequest({
+        // fnRequest({
+        //     url: '/mvc/inputStr',
+        //     method: 'POST',
+        //     // param: `str=${JSON.stringify(val)}`
+        //     param: {str: val}
+        // }, function (response) {
+        //     console.log(response)
+        // })
+
+        fnRequestPromise({
             url: '/mvc/inputStr',
             method: 'POST',
             // param: `str=${JSON.stringify(val)}`
             param: {str: val}
-        }, function (response) {
-            // console.log(response)
+        }).then(response => {
+            console.log(response)
         })
 
     }
@@ -41,14 +50,15 @@
                            method: method = 'GET',
                            param: param
                        }, cFunc) {
-        console.log(param)
+        // console.log(param)
         if (window.XMLHttpRequest) {// IE7+, Firefox, Chrome, Opera, Safari 代码
             xmlhttp = new XMLHttpRequest();
         } else {// IE6, IE5 代码
             xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
         }
+        // 注意，这里会调用4次
         xmlhttp.onreadystatechange = cFunc;
-        xmlhttp.open(method, url, true);
+        // xmlhttp.open(method, url, true);
         const type = {
             GET: function () {
                 xmlhttp.open("GET", `${url}?_$random= ${Math.random()}&${param}`, true);
@@ -61,7 +71,43 @@
             }
         }
         type[method]()
-        console.log(xmlhttp.responseText)
+        // console.log(xmlhttp.responseText)
     }
+
+    function fnRequestPromise({
+                                  url: url = '',
+                                  method: method = 'GET',
+                                  param: param
+                              }) {
+        return new Promise(((resolve, reject) => {
+            let xhr;
+            if (window.XMLHttpRequest) {// IE7+, Firefox, Chrome, Opera, Safari 代码
+                xhr = new XMLHttpRequest();
+            } else {// IE6, IE5 代码
+                xhr = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    resolve(xhr.responseText)
+                }
+                if (xhr.status === 404) {
+                    reject(xhr)
+                }
+            }
+            const type = {
+                GET: function () {
+                    xhr.open("GET", `${url}?_$random= ${Math.random()}&${param}`, true);
+                    xhr.send();
+                },
+                POST: function () {
+                    xhr.open("POST", url, true);
+                    xhr.setRequestHeader("Content-type", "application/json");
+                    xhr.send(JSON.stringify(param));
+                }
+            }
+            type[method]()
+        }))
+    }
+
 </script>
 </html>
